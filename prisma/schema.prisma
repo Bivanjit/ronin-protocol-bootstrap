@@ -39,15 +39,15 @@ model MarketObservation {
   source                String
   priceUsd              Decimal? @db.Decimal(38, 18)
   liquidityUsd          Decimal? @db.Decimal(38, 8)
-  volume5mUsd           Decimal? @db.Decimal(38, 8)
-  volume1hUsd           Decimal? @db.Decimal(38, 8)
-  volume24hUsd          Decimal? @db.Decimal(38, 8)
+  volume5mUsd            Decimal? @db.Decimal(38, 8)
+  volume1hUsd            Decimal? @db.Decimal(38, 8)
+  volume24hUsd           Decimal? @db.Decimal(38, 8)
   priceChange5mPercent  Decimal? @db.Decimal(20, 8)
   priceChange1hPercent  Decimal? @db.Decimal(20, 8)
   priceChange24hPercent Decimal? @db.Decimal(20, 8)
-  observedAt            DateTime
-  createdAt             DateTime @default(now())
-  market                Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  observedAt             DateTime
+  createdAt               DateTime @default(now())
+  market                  Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
   @@index([marketId, observedAt])
   @@index([source, observedAt])
 }
@@ -61,4 +61,59 @@ model RawSourceRecord {
   observedAt     DateTime
   ingestedAt     DateTime @default(now())
   @@index([source, resourceType, resourceKey, observedAt])
+}
+
+model Transaction {
+  id                 String                  @id @default(cuid())
+  signature          String                  @unique
+  slot               Int
+  blockTime          DateTime
+  fee                Int
+  status             String
+  error              String?
+  sourceId           String
+  rawSourceRecord    RawSourceRecord?
+  signers             String[]
+  programIds          String[]
+  instructions       TransactionInstruction[]
+  solTransfers        SolTransfer[]
+  tokenTransfers     TokenTransfer[]
+  createdAt           DateTime                @default(now())
+  indexedAt           DateTime                @default(now())
+
+  @@index([blockTime])
+  @@index([status])
+}
+
+model TransactionInstruction {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  programId     String
+  data          String?
+  inner         Boolean     @default(false)
+  index         Int
+  parsed        Json?
+}
+
+model SolTransfer {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  from          String
+  to            String
+  amount        BigInt
+  source        String?
+}
+
+model TokenTransfer {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  from          String
+  to            String
+  mint          String
+  amount        BigInt
+  decimals      Int
+  tokenAddress  String?
 }
