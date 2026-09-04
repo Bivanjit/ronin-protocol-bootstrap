@@ -5,13 +5,5 @@
   "scripts": {
     "ingestion:once": "pnpm --filter @ronin/ingestion start",
     "test": "pnpm --filter @ronin/ingestion test"
-  },
-  "devDependencies": {
-    "prisma": "6.19.3",
-    "tsx": "^4.23.13",
-    "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "@prisma/client": "6.19.3"
   }
 }
