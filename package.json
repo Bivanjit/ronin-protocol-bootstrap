@@ -1,0 +1,9 @@
+{
+  "name": "ronin-protocol",
+  "private": true,
+  "packageManager": "pnpm@10.12.4",
+  "scripts": {
+    "ingestion:once": "pnpm --filter @ronin/ingestion start",
+    "test": "pnpm --filter @ronin/ingestion test"
+  }
+}
