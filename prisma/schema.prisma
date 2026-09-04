@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Token {
+  id           String   @id @default(cuid())
+  mintAddress  String   @unique
+  symbol       String?
+  name         String?
+  decimals     Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  markets      Market[]
+}
+
+model Market {
+  id             String              @id @default(cuid())
+  tokenId        String
+  marketAddress  String
+  baseMint       String?
+  quoteMint      String?
+  dexId          String?
+  source         String
+  createdAt      DateTime            @default(now())
+  token          Token               @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  observations   MarketObservation[]
+  @@unique([source, marketAddress])
+  @@index([tokenId])
+}
+
+model MarketObservation {
+  id                    String   @id @default(cuid())
+  marketId              String
+  source                String
+  priceUsd              Decimal? @db.Decimal(38, 18)
+  liquidityUsd          Decimal? @db.Decimal(38, 8)
+  volume5mUsd           Decimal? @db.Decimal(38, 8)
+  volume1hUsd           Decimal? @db.Decimal(38, 8)
+  volume24hUsd          Decimal? @db.Decimal(38, 8)
+  priceChange5mPercent  Decimal? @db.Decimal(20, 8)
+  priceChange1hPercent  Decimal? @db.Decimal(20, 8)
+  priceChange24hPercent Decimal? @db.Decimal(20, 8)
+  observedAt            DateTime
+  createdAt             DateTime @default(now())
+  market                Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  @@index([marketId, observedAt])
+  @@index([source, observedAt])
+}
+
+model RawSourceRecord {
+  id             String   @id @default(cuid())
+  source         String
+  resourceType   String
+  resourceKey    String
+  payloadJson    Json
+  observedAt     DateTime
+  ingestedAt     DateTime @default(now())
+  @@index([source, resourceType, resourceKey, observedAt])
+}
